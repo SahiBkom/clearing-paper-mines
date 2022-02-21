@@ -136,29 +136,59 @@ impl Board {
             }
             println!();
         }
-        document = document.add(values);
+        document = document.add(values).add(Board::svg_grid(30, max_x, max_y));
+        svg::save("image.svg", &document).unwrap();
+    }
 
+    pub fn to_4(&self) {
+        let (max_x, max_y) = self.find_max_used();
+        let mut document = Document::new()
+            .set("width", format!("{}px", ((max_x + 1) *30 + 1) * 2))
+            .set("height", format!("{}px", ((max_y + 1)* 30 + 1) * 2))
+            .set("viewBox", (0, 0, (max_x +1)* 30 + 1, (max_y + 1) * 30 + 1));
+        let mut values = Group::new()
+            .set("font-family", "Verdana")
+            .set("font-size", 24)
+            .set("text-anchor", "middle");
+        for y in 0..max_y {
+            for x in 0..max_x {
+                let v = (self.0[y] & (0xc000_0000 >> x)).count_ones()
+                    + (self.0[y + 1] & (0xc000_0000 >> x)).count_ones();
+                print!("{}", v);
+                values = values.add(
+                    Text::new()
+                        .set("x", x * 30 + 30)
+                        .set("y", y * 30 + 40)
+                        .add(svg::node::Text::new(v.to_string())),
+                );
+            }
+            println!();
+        }
+        document = document.add(values).add(Board::svg_grid(30, max_x + 1, max_y+ 1));
+        svg::save("image.svg", &document).unwrap();
+    }
+
+    fn svg_grid(spacing: usize, max_x: usize, max_y: usize) -> Group {
         let mut lines = Group::new().set("stroke-width", 1).set("stroke", "blue");
         for i in 0..(max_y + 1) {
             lines = lines.add(
                 Line::new()
                     .set("x1", 0)
-                    .set("y1", i * 30)
+                    .set("y1", i * spacing)
                     .set("x2", max_x * 30 + 1)
-                    .set("y2", i * 30),
+                    .set("y2", i * spacing),
             );
         }
         for i in 0..(max_x + 1) {
             lines = lines.add(
                 Line::new()
-                    .set("x1", i * 30)
+                    .set("x1", i * spacing)
                     .set("y1", 0)
                     .set("x2", i * 30)
-                    .set("y2", max_y * 30 + 1),
+                    .set("y2", max_y * spacing + 1),
             );
         }
-        document = document.add(lines);
-        svg::save("image.svg", &document).unwrap();
+        lines
     }
 
     fn find_max_used(&self) -> (usize, usize) {
@@ -175,9 +205,9 @@ impl Board {
 
 fn main() {
     let mut b = Board::new();
-    b.put_string("1234\n5678", 1, 1);
+    b.put_string("2655\n7189", 1, 1);
     // b.put_string("5678", 1, 8);
     b.print(32, 16);
     println!("{:?}", b.find_max_used());
-    b.to_9();
+    b.to_4();
 }
