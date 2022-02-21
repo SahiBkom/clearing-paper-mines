@@ -143,9 +143,12 @@ impl Board {
     pub fn to_4(&self) {
         let (max_x, max_y) = self.find_max_used();
         let mut document = Document::new()
-            .set("width", format!("{}px", ((max_x + 1) *30 + 1) * 2))
-            .set("height", format!("{}px", ((max_y + 1)* 30 + 1) * 2))
-            .set("viewBox", (0, 0, (max_x +1)* 30 + 1, (max_y + 1) * 30 + 1));
+            .set("width", format!("{}px", ((max_x + 1) * 30 + 1) * 2))
+            .set("height", format!("{}px", ((max_y + 1) * 30 + 1) * 2))
+            .set(
+                "viewBox",
+                (0, 0, (max_x + 1) * 30 + 1, (max_y + 1) * 30 + 1),
+            );
         let mut values = Group::new()
             .set("font-family", "Verdana")
             .set("font-size", 24)
@@ -164,7 +167,9 @@ impl Board {
             }
             println!();
         }
-        document = document.add(values).add(Board::svg_grid(30, max_x + 1, max_y+ 1));
+        document = document
+            .add(values)
+            .add(Board::svg_grid(30, max_x + 1, max_y + 1));
         svg::save("image.svg", &document).unwrap();
     }
 
